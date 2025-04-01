@@ -1,12 +1,18 @@
 CC=g++
 
-LDFLAGS="-L/opt/homebrew/opt/libomp/lib"
-CPPFLAGS="-I/opt/homebrew/opt/libomp/include"
+UNAME := $(shell uname -s)
+ifeq ($(UNAME),Linux)
+	LDFLAGS=-lm
+	CPPFLAGS=
+else
+	LDFLAGS=-L/opt/homebrew/opt/libomp/lib -lomp
+	CPPFLAGS=-I/opt/homebrew/opt/libomp/include -Xpreprocessor
+endif
 
 threads ?= 1
 
 main:
-	$(CC)  -DNUMT=$(threads) -Xpreprocessor  -fopenmp   $(CPPFLAGS)  $(LDFLAGS)  -lomp   *.cpp  -o  main
+	$(CC)  -DNUMT=$(threads) -fopenmp $(CPPFLAGS) $(LDFLAGS) *.cpp -o main
 
 clean:
 	rm -rf main

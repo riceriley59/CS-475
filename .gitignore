@@ -1,1 +1,5 @@
+# Ignore executables
 main
+
+# Ignore results files
+results.txt
