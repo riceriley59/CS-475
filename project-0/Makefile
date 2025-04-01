@@ -1,18 +1,15 @@
 CC=g++
 
+threads ?= 1
 UNAME := $(shell uname -s)
 ifeq ($(UNAME),Linux)
-	LDFLAGS=-lm
-	CPPFLAGS=
+	CPPFLAGS=-fopenmp -lm
 else
-	LDFLAGS=-L/opt/homebrew/opt/libomp/lib -lomp
-	CPPFLAGS=-I/opt/homebrew/opt/libomp/include -Xpreprocessor
+	CPPFLAGS=-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib -lomp
 endif
 
-threads ?= 1
-
 main:
-	$(CC)  -DNUMT=$(threads) -fopenmp $(CPPFLAGS) $(LDFLAGS) *.cpp -o main
+	$(CC) -DNUMT=$(threads) $(CPPFLAGS) *.cpp -o main
 
 clean:
 	rm -rf main
