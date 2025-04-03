@@ -47,8 +47,6 @@ const float GRAVITY =	-9.8;	// acceleraion due to gravity in meters / sec^2
 const float TOL = 5.0;		// tolerance in cannonball hitting the castle in meters
 				// castle is destroyed if cannonball lands between d-TOL and d+TOL
 
-omp_lock_t Sync;
-
 // function prototypes:
 float		Ranf( float, float );
 int		Ranf( int, int );
@@ -113,8 +111,6 @@ main( int argc, char *argv[ ] )
 
 	omp_set_num_threads( NUMT );	// set the number of threads to use in parallelizing the for-loop:`
 
-    omp_init_lock(&Sync);
-
 	// better to define these here so that the rand() calls don't get into the thread timing:
 	float *vs  = new float [NUMTRIALS];
 	float *ths = new float [NUMTRIALS];
@@ -143,7 +139,7 @@ main( int argc, char *argv[ ] )
 
 		numHits = 0;
 
-		#pragma omp parallel for shared(vs, ths, gs, hs, ds, numHits)
+		#pragma omp parallel for default(none), shared(vs, ths, gs, hs, ds, stderr, TOL, GRAVITY), reduction(+:numHits)
 		for( int n = 0; n < NUMTRIALS; n++ )
 		{
 			// randomize everything:
@@ -211,9 +207,8 @@ main( int argc, char *argv[ ] )
 					{
 						if( DEBUG )  fprintf( stderr, "Hits the castle at upperDist = %8.3f\n", upperDist );
 
-                        omp_set_lock(&Sync);
-                            numHits += 1;
-                        omp_unset_lock(&Sync);
+                        // We hit the castle so increment the number of hits
+                        numHits += 1;
 					}
 					else
 					{
