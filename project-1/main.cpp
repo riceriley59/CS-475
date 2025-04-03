@@ -224,7 +224,11 @@ main( int argc, char *argv[ ] )
 		} // for( # of  monte carlo trials )
 
 		double time1 = omp_get_wtime( );
-		double megaTrialsPerSecond = (double)NUMTRIALS / ( time1 - time0 ) / 1000000.;
+        double time_diff = time1 - time0;
+        double megaTrialsPerSecond = 0;
+        if(time_diff > 0) {
+            megaTrialsPerSecond = (double)NUMTRIALS / time_diff / 1000000.;
+        }
 		if( megaTrialsPerSecond > maxPerformance )
 			maxPerformance = megaTrialsPerSecond;
 	} // for ( # of timing tries )
@@ -233,7 +237,7 @@ main( int argc, char *argv[ ] )
 
 // uncomment this if you want to print output to a ready-to-use CSV file:
 
-// #define CSV
+#define CSV
 #ifdef CSV
 	fprintf(stderr, "%2d , %8d , %6.2lf\n",  NUMT, NUMTRIALS, maxPerformance);
 #else

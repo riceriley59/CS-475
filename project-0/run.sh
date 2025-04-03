@@ -1,7 +1,6 @@
 #!/bin/bash
 
-output_file="results.txt"
-> "$output_file"  # Clear the file before running
+output_file="results.txt" > "$output_file"  # Clear the file before running
 
 for t in 1 4
 do
