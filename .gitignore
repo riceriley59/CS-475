@@ -10,3 +10,4 @@ results.*
 # Ignore Python build files
 *.egg*
 __pycache__
+venv
