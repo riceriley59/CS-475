@@ -28,7 +28,13 @@ import matplotlib.pyplot as plt
     type=int,
     help="Column indices for the y-axis (0-based indices). Multiple y's are allowed."
 )
-def csv(filename, x, y):
+@click.option(
+    "--title",
+    default=None,
+    type=str,
+    help="Title for the graph"
+)
+def csv(filename, x, y, title):
     df = pd.read_csv(filename)
 
     if x >= df.shape[1]:
@@ -44,9 +50,7 @@ def csv(filename, x, y):
     plt.figure(figsize=(12, 6))
 
     y_column_names = []
-
     y_min = float('inf')
-
     for yi in y:
         y_data = df.iloc[:, yi]
         y_column_names.append(df.columns[yi])
@@ -58,7 +62,7 @@ def csv(filename, x, y):
 
     plt.xlabel(df.columns[x])
     plt.ylabel(", ".join(y_column_names))
-    plt.title(f'{df.columns[x]} vs {", ".join(y_column_names)}')
+    plt.title(title if title else f'{df.columns[x]} vs {", ".join(y_column_names)}')
 
     x_min, x_max = x_data.min(), x_data.max()
 

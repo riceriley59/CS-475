@@ -1,12 +1,15 @@
 #include <stdio.h>
-#include <iostream>
-#include <vector>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
 #include <omp.h>
+
 #include <fstream>
+#include <iostream>
+#include <vector>
+
+#include "helpers.h"
 
 int	    NowYear;		// 2025- 2030
 int	    NowMonth;		// 0 - 11
@@ -17,14 +20,11 @@ float	NowHeight;		// grain height in inches
 
 float   NowFireDamage;
 
-std::vector<std::string>   Data;
-
 int	    NowNumDeer;		// number of deer in the current population
 
-omp_lock_t	Lock;
-volatile int	NumInThreadTeam;
-volatile int	NumAtBarrier;
-volatile int	NumGone;
+unsigned int seed = 0;
+
+std::vector<std::string>   Data;
 
 const float GRAIN_GROWS_PER_MONTH =	       12.0;
 const float ONE_DEER_EATS_PER_MONTH =		1.0;
@@ -40,21 +40,10 @@ const float RANDOM_TEMP =			10.0;	// plus or minus noise
 const float MIDTEMP =				40.0;
 const float MIDPRECIP =				10.0;
 
-unsigned int seed = 0;
-
-void InitBarrier(int);
-void WaitBarrier();
-
-float Ranf( float, float );
-int	Ranf( int, int );
-float SQR(float);
-
 void Deer();
 void Grain();
 void Watcher();
 void WildFires();
-
-void write_csv(const std::string&, const std::vector<std::string>&);
 
 int main() {
     omp_set_num_threads( 4 );	// or 4
@@ -129,15 +118,15 @@ void Deer() {
             nextNumDeer = 0;
 
         // DoneComputing barrier:
-        WaitBarrier( );
+        WaitBarrier();
 
         NowNumDeer = nextNumDeer;
 
         // DoneAssigning barrier:
-        WaitBarrier( );
+        WaitBarrier();
 
         // DonePrinting barrier:
-        WaitBarrier( );
+        WaitBarrier();
     }
 
     return;
@@ -155,15 +144,15 @@ void Grain() {
         if( nextHeight < 0. ) nextHeight = 0.;
 
         // DoneComputing barrier:
-        WaitBarrier( );
+        WaitBarrier();
 
         NowHeight = nextHeight;
 
         // DoneAssigning barrier:
-        WaitBarrier( );
+        WaitBarrier();
 
         // DonePrinting barrier:
-        WaitBarrier( );
+        WaitBarrier();
     }
 
     return;
@@ -179,15 +168,15 @@ void WildFires() {
         }
 
         // DoneComputing barrier:
-        WaitBarrier( );
+        WaitBarrier();
 
         NowFireDamage = nextFireDamage;
 
         // DoneAssigning barrier:
-        WaitBarrier( );
+        WaitBarrier();
 
         // DonePrinting barrier:
-        WaitBarrier( );
+        WaitBarrier();
     }
 
     return;
@@ -196,20 +185,21 @@ void WildFires() {
 void Watcher() {
     while( NowYear < 2031 ) {
         // DoneComputing barrier:
-        WaitBarrier( );
+        WaitBarrier();
 
         // DoneAssigning barrier:
-        WaitBarrier( );
+        WaitBarrier();
 
         NowHeight -= NowFireDamage;
         if( NowHeight < 0. ) NowHeight = 0.;
 
+        int monthNumber = ((NowYear - 2025) * 12) + NowMonth;
         printf("Month: %d, Year: %d, Deer: %d, Grain: %f, Fire Damage: %f, Temp: %f, Precipitation: %f\n",
                  NowMonth, NowYear, NowNumDeer, NowHeight, NowFireDamage, NowTemp, NowPrecip);
 
         char buffer[100];
         snprintf(buffer, sizeof(buffer), "%d, %d, %d, %d, %f, %f, %f, %f\n",
-                 NowMonth, NowYear, (((NowYear - 2025) * 12) + NowMonth), NowNumDeer, (NowHeight * 2.54), (NowFireDamage * 2.54), ((5./9.) * (NowTemp - 32.)), (NowPrecip * 2.54));
+                 NowMonth, NowYear, monthNumber, NowNumDeer, InchesToCM(NowHeight), InchesToCM(NowFireDamage), FarenheitToCelcius(NowTemp), InchesToCM(NowPrecip));
 
         Data.push_back(std::string(buffer));
 
@@ -219,7 +209,7 @@ void Watcher() {
             NowMonth = 0;
         }
 
-        float ang = (  30.*(float)NowMonth + 15.  ) * ( M_PI / 180. );	// angle of earth around the sun
+        float ang = (30. * (float)NowMonth + 15.) * (M_PI / 180.);	// angle of earth around the sun
 
         float temp = AVG_TEMP - AMP_TEMP * cos( ang );
         NowTemp = temp + Ranf( -RANDOM_TEMP, RANDOM_TEMP );
@@ -230,71 +220,8 @@ void Watcher() {
             NowPrecip = 0.;
 
         // DonePrinting barrier:
-        WaitBarrier( );
+        WaitBarrier();
     }
 
     return;
 };
-
-void InitBarrier( int n ) {
-    NumInThreadTeam = n;
-    NumAtBarrier = 0;
-    omp_init_lock( &Lock );
-}
-
-void WaitBarrier( ) {
-    omp_set_lock( &Lock );
-    {
-        NumAtBarrier++;
-        if( NumAtBarrier == NumInThreadTeam )
-        {
-            NumGone = 0;
-            NumAtBarrier = 0;
-            // let all other threads get back to what they were doing
-            // before this one unlocks, knowing that they might immediately
-            // call WaitBarrier( ) again:
-            while( NumGone != NumInThreadTeam-1 );
-            omp_unset_lock( &Lock );
-            return;
-        }
-    }
-    omp_unset_lock( &Lock );
-
-    while( NumAtBarrier != 0 );	// this waits for the nth thread to arrive
-
-    #pragma omp atomic
-    NumGone++;			// this flags how many threads have returned
-}
-
-void write_csv(const std::string& filename, const std::vector<std::string>& data) {
-    std::ofstream file(filename);
-
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filename << " for writing.\n";
-        return;
-    }
-
-    for (const auto& line : data) {
-        file << line;
-    }
-
-    file.close();
-}
-
-float Ranf( float low, float high ) {
-    float r = (float) rand();               // 0 - RAND_MAX
-    float t = r  /  (float) RAND_MAX;       // 0. - 1.
-
-    return   low  +  t * ( high - low );
-}
-
-int Ranf( int ilow, int ihigh ) {
-    float low = (float)ilow;
-    float high = ceil( (float)ihigh );
-
-    return (int) Ranf(low,high);
-}
-
-float SQR( float x ) {
-    return x*x;
-}
