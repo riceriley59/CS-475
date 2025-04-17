@@ -1,3 +1,8 @@
+#include <omp.h>
+#include <fstream>
+#include <iostream>
+#include <vector>
+
 #include "helpers.h"
 
 omp_lock_t	    Lock;
