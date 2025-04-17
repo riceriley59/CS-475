@@ -69,8 +69,8 @@ int main() {
         NowPrecip = 0.;
 
 
-    char buffer[100];
-    snprintf(buffer, sizeof(buffer), "Month, Year, Months, Deer, Grain (cm), Fire Damage (cm), Temperature (celsius), Precipitation (cm)\n");
+    char buffer[150];
+    snprintf(buffer, sizeof(buffer), "Month, Year, Months, Deer (#), Grain (cm), Fire Damage (cm), Temperature (celsius), Precipitation (cm)\n");
     Data.push_back(std::string(buffer));
 
     omp_set_num_threads(4);	// same as # of sections
@@ -159,12 +159,32 @@ void Grain() {
 };
 
 void WildFires() {
-    while( NowYear < 2031 ) {
-        float nextFireDamage = NowFireDamage;
-        if (NowTemp > 70. && NowPrecip < 4.0 && NowHeight > 2.) {
-            nextFireDamage = Ranf(0.f, (NowHeight - 0.5f));
+    const float ignitionChance = 0.3f;
+    float droughtFactor = 0.0f;
+
+    while (NowYear < 2031) {
+        float nextFireDamage = 0.0f;
+
+        // Accumulate drought factor over time
+        if (NowPrecip < 6.0f) {
+            droughtFactor += 0.5f;
         } else {
-            nextFireDamage = 0.;
+            droughtFactor *= 0.9f;
+        }
+
+        // Check fire condition
+        if (NowTemp > 45.0f && NowHeight > 0.3f && droughtFactor > 0.5f) {
+            float fireLikelihood = ignitionChance + (droughtFactor * 0.2f);
+            if (Ranf(0.f, 1.f) < fireLikelihood) {
+                // More intense fire if conditions are extreme
+                float intensity = (NowTemp - 45.f) * 0.02f + droughtFactor * 0.3f;
+                intensity = fmin(intensity, 1.0f);
+                nextFireDamage = Ranf(0.0f, intensity * NowHeight);
+
+                // Reduce height due to fire damage
+                NowHeight -= nextFireDamage;
+                if (NowHeight < 0.0f) NowHeight = 0.0f;
+            }
         }
 
         // DoneComputing barrier:
@@ -180,7 +200,7 @@ void WildFires() {
     }
 
     return;
-};
+}
 
 void Watcher() {
     while( NowYear < 2031 ) {

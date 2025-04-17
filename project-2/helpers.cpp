@@ -43,6 +43,8 @@ void write_csv(const std::string& filename, const std::vector<std::string>& data
         return;
     }
 
+    // use auto type here so that I don't have to write a big vector type
+    // for an iterator which would be my other option
     for (const auto& line : data) {
         file << line;
     }
