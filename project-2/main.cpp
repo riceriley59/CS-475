@@ -178,12 +178,8 @@ void WildFires() {
             if (Ranf(0.f, 1.f) < fireLikelihood) {
                 // More intense fire if conditions are extreme
                 float intensity = (NowTemp - 45.f) * 0.02f + droughtFactor * 0.3f;
-                intensity = fmin(intensity, 1.0f);
+                if (intensity > 1.0f) intensity = 1.0f;
                 nextFireDamage = Ranf(0.0f, intensity * NowHeight);
-
-                // Reduce height due to fire damage
-                NowHeight -= nextFireDamage;
-                if (NowHeight < 0.0f) NowHeight = 0.0f;
             }
         }
 
@@ -191,6 +187,9 @@ void WildFires() {
         WaitBarrier();
 
         NowFireDamage = nextFireDamage;
+
+        NowHeight -= NowFireDamage;
+        if (NowHeight < 0.0f) NowHeight = 0.0f;
 
         // DoneAssigning barrier:
         WaitBarrier();
@@ -215,11 +214,11 @@ void Watcher() {
 
         int monthNumber = ((NowYear - 2025) * 12) + NowMonth;
         printf("Month: %d, Year: %d, Deer: %d, Grain: %f, Fire Damage: %f, Temp: %f, Precipitation: %f\n",
-                 NowMonth, NowYear, NowNumDeer, NowHeight, NowFireDamage, NowTemp, NowPrecip);
+                 NowMonth + 1, NowYear, NowNumDeer, NowHeight, NowFireDamage, NowTemp, NowPrecip);
 
         char buffer[100];
         snprintf(buffer, sizeof(buffer), "%d, %d, %d, %d, %f, %f, %f, %f\n",
-                 NowMonth, NowYear, monthNumber, NowNumDeer, InchesToCM(NowHeight), InchesToCM(NowFireDamage), FarenheitToCelcius(NowTemp), InchesToCM(NowPrecip));
+                 (NowMonth + 1), NowYear, monthNumber, NowNumDeer, InchesToCM(NowHeight), InchesToCM(NowFireDamage), FarenheitToCelcius(NowTemp), InchesToCM(NowPrecip));
 
         Data.push_back(std::string(buffer));
 
