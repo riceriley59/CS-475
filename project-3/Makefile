@@ -8,8 +8,11 @@ else
 	CPPFLAGS=-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include -L/opt/homebrew/opt/libomp/lib -lomp
 endif
 
+threads ?= 2
+capitals ?= 5
+
 main:
-	$(CC) $(CPPFLAGS) *.cpp -o $(TARGET)
+	$(CC) $(CPPFLAGS) -DNUMT=$(threads) -DNUMCAPITALS=$(capitals) *.cpp -o $(TARGET)
 
 clean:
 	rm -rf main
