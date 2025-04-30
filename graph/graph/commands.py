@@ -73,3 +73,78 @@ def csv(filename, x, y, title):
     plt.tight_layout(pad=1.0)
 
     plt.show()
+
+@click.command()
+@click.argument(
+    "filename",
+    type=click.Path(
+        exists=True,
+        file_okay=True,
+        readable=True,
+        path_type=Path
+    ),
+)
+@click.option(
+    "--x",
+    default=0,
+    type=int,
+    help="Column index for the x-axis (0-based index)"
+)
+@click.option(
+    "--y",
+    default=None,
+    multiple=False,
+    type=int,
+    help="Column indices for the y-axis (0-based indices). Multiple y's are allowed."
+)
+@click.option(
+    "--title",
+    default=None,
+    type=str,
+    help="Title for the graph"
+)
+@click.option(
+    "--group-row",
+    required=True,
+    type=int,
+    help="Which row to group values into"
+)
+def csv_group(filename, x, y, group_row, title):
+    df = pd.read_csv(filename)
+
+    if x >= df.shape[1] or y >= df.shape[1] or group_row >= df.shape[1]:
+        print(f"CSV file must contain at least {max(x, y, group_row) + 1} columns.")
+        return
+
+    x_data = df.iloc[:, x]
+    y_data = df.iloc[:, y]
+    group_data = df.iloc[:, group_row]
+
+    plt.figure(figsize=(12, 6))
+
+    grouped_df = pd.DataFrame({
+        "x": x_data,
+        "y": y_data,
+        "group": group_data,
+    })
+
+    for group_value, group_df in grouped_df.groupby("group"):
+        sorted_group = group_df.sort_values("x")
+
+        plt.scatter(sorted_group["x"], sorted_group["y"], label=group_value)
+        plt.plot(sorted_group["x"], sorted_group["y"])
+
+    plt.xlabel(df.columns[x])
+    plt.ylabel(df.columns[y])
+    plt.title(title if title else f'{df.columns[x]} vs {df.columns[y]}')
+
+    x_min, x_max = x_data.min(), x_data.max()
+    y_min = y_data.min()
+
+    plt.xlim(left=x_min, right=x_max)
+    plt.ylim(bottom=y_min)
+
+    plt.legend(title=df.columns[group_row], loc='upper left', bbox_to_anchor=(1, 1), frameon=False)
+    plt.tight_layout(pad=1.0)
+
+    plt.show()

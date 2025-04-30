@@ -6,4 +6,5 @@ from . import commands
 def cli():
     pass
 
-cli.add_command(commands.csv);
+cli.add_command(commands.csv)
+cli.add_command(commands.csv_group)

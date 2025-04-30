@@ -1,6 +1,12 @@
 #!/bin/bash
 
-output_file="results.csv" > "$output_file"
+executable=project-3
+output_file="project-3.csv"
+
+> "$output_file"
+
+make clean
+echo "Threads (#), Cities (#), Capitals (#), Performance (MegaCityCapitals/sec)" >> "$output_file"
 
 for t in 1 2 4 6 8
 do
@@ -8,11 +14,11 @@ do
     do
         echo "Running with $t threads and $cap capitals..."
 
-        make clean
-        make threads=$t capitals=$cap
+        make clean-no-csv
+        make threads=$t capitals=$cap csv=true
 
-        ./main 2>&1 | tee -a "$output_file"
+        ./$executable >> "$output_file"
     done
 done
 
-make clean
+make clean-no-csv
