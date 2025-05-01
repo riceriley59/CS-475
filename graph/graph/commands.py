@@ -129,10 +129,8 @@ def csv_group(filename, x, y, group_row, title):
     })
 
     for group_value, group_df in grouped_df.groupby("group"):
-        sorted_group = group_df.sort_values("x")
-
-        plt.scatter(sorted_group["x"], sorted_group["y"], label=group_value)
-        plt.plot(sorted_group["x"], sorted_group["y"])
+        plt.scatter(group_df["x"], group_df["y"], label=group_value)
+        plt.plot(group_df["x"], group_df["y"])
 
     plt.xlabel(df.columns[x])
     plt.ylabel(df.columns[y])
