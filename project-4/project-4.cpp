@@ -39,8 +39,8 @@ int main(int argc, char *argv[ ]) {
     for(int t = 0; t < NUMTRIES; t++) {
         double time0 = omp_get_wtime();
         NonSimdMul(A, B, C, ARRAYSIZE);
-
         double time1 = omp_get_wtime();
+
         double perf = (double)ARRAYSIZE / (time1 - time0);
         if (perf > maxPerformance)
             maxPerformance = perf;
@@ -55,6 +55,7 @@ int main(int argc, char *argv[ ]) {
         double time0 = omp_get_wtime();
         SimdMul(A, B, C, ARRAYSIZE);
         double time1 = omp_get_wtime();
+
         double perf = (double)ARRAYSIZE / (time1 - time0);
         if(perf > maxPerformance)
             maxPerformance = perf;
@@ -72,6 +73,7 @@ int main(int argc, char *argv[ ]) {
         double time0 = omp_get_wtime();
         sumn = NonSimdMulSum(A, B, ARRAYSIZE);
         double time1 = omp_get_wtime();
+
         double perf = (double)ARRAYSIZE / (time1 - time0);
         if(perf > maxPerformance)
             maxPerformance = perf;
@@ -85,8 +87,8 @@ int main(int argc, char *argv[ ]) {
     for(int t = 0; t < NUMTRIES; t++) {
         double time0 = omp_get_wtime();
         sums = SimdMulSum(A, B, ARRAYSIZE);
-
         double time1 = omp_get_wtime();
+
         double perf = (double)ARRAYSIZE / (time1 - time0);
         if( perf > maxPerformance )
             maxPerformance = perf;
@@ -104,13 +106,21 @@ int main(int argc, char *argv[ ]) {
 
 
 void NonSimdMul(float *A, float *B, float *C, int n) {
-    // ?????
+    for(int i = 0; i < n; i++) {
+        C[i] = A[i] * B[i];
+    }
+
     return;
 }
 
 float NonSimdMulSum(float *A, float *B, int n) {
-    // ?????
-    return 0.f;
+    float sum = 0.f;
+
+    for(int i = 0; i < n; i++) {
+        sum += A[i] * B[i];
+    }
+
+    return sum;
 }
 
 
