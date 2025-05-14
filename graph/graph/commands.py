@@ -55,23 +55,28 @@ def csv(filename, x, y, title):
         y_data = df.iloc[:, yi]
         y_column_names.append(df.columns[yi])
 
-        plt.scatter(x_data, y_data, label=df.columns[yi])
-        plt.plot(x_data, y_data, linestyle='-', alpha=0.6)  # Adds a line connecting the points
+        if len(y) > 1:
+            plt.scatter(x_data, y_data, label=df.columns[yi])
+        else:
+            plt.scatter(x_data, y_data)
+
+        plt.plot(x_data, y_data, linestyle='-', alpha=0.6)
 
         y_min = min(y_min, y_data.min())
 
     plt.xlabel(df.columns[x])
     plt.ylabel(", ".join(y_column_names))
-    plt.title(title if title else f'{df.columns[x]} vs {", ".join(y_column_names)}')
+    plt.title(title if title else f'{df.columns[x]} vs{", ".join(y_column_names)}')
 
     x_min, x_max = x_data.min(), x_data.max()
 
     plt.xlim(left=x_min, right=x_max)
     plt.ylim(bottom=y_min)
 
-    plt.legend(loc='upper left', bbox_to_anchor=(1, 1), frameon=False)
-    plt.tight_layout(pad=1.0)
+    if len(y) > 1:
+        plt.legend(loc='upper left', bbox_to_anchor=(1, 1), frameon=False)
 
+    plt.tight_layout(pad=1.0)
     plt.show()
 
 @click.command()
