@@ -33,7 +33,7 @@ int main(int argc, char *argv[ ]) {
         B[i] = sqrtf((float)(i+1));
     }
 
-    fprintf( stderr, "%12d\t", ARRAYSIZE );
+    fprintf(stderr, "%12d, ", ARRAYSIZE );
 
     double maxPerformance = 0.;
     for(int t = 0; t < NUMTRIES; t++) {
@@ -47,7 +47,7 @@ int main(int argc, char *argv[ ]) {
     }
 
     double megaMults = maxPerformance / 1000000.;
-    fprintf(stderr, "N %10.2lf\t", megaMults);
+    fprintf(stderr, "%10.2lf, ", megaMults);
     double mmn = megaMults;
 
     maxPerformance = 0.;
@@ -62,10 +62,10 @@ int main(int argc, char *argv[ ]) {
     }
 
     megaMults = maxPerformance / 1000000.;
-    fprintf(stderr, "S %10.2lf\t", megaMults);
+    fprintf(stderr, "%10.2lf, ", megaMults);
     double mms = megaMults;
     double speedup = mms/mmn;
-    fprintf(stderr, "(%6.2lf)\t", speedup);
+    fprintf(stderr, "%6.2lf, ", speedup);
 
     maxPerformance = 0.;
     float sumn, sums;
@@ -80,7 +80,7 @@ int main(int argc, char *argv[ ]) {
     }
 
     double megaMultAdds = maxPerformance / 1000000.;
-    fprintf(stderr, "N %10.2lf\t", megaMultAdds);
+    fprintf(stderr, "%10.2lf, ", megaMultAdds);
     mmn = megaMultAdds;
 
     maxPerformance = 0.;
@@ -95,10 +95,10 @@ int main(int argc, char *argv[ ]) {
     }
 
     megaMultAdds = maxPerformance / 1000000.;
-    fprintf(stderr, "S %10.2lf\t", megaMultAdds);
+    fprintf(stderr, "%10.2lf, ", megaMultAdds);
     mms = megaMultAdds;
     speedup = mms/mmn;
-    fprintf(stderr, "(%6.2lf)\n", speedup);
+    fprintf(stderr, "%6.2lf\n", speedup);
     //fprintf( stderr, "[ %8.1f , %8.1f , %8.1f ]\n", C[ARRAYSIZE-1], sumn, sums );
 
     return 0;

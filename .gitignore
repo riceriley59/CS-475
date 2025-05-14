@@ -4,9 +4,6 @@ main
 # Ignore results files
 results.*
 
-# Ignore CSV files
-*.csv
-
 # Ignore Python build files
 *.egg*
 __pycache__
